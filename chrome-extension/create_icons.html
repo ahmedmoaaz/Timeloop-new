@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Icon Generator</title>
+</head>
+<body>
+  <canvas id="canvas16" width="16" height="16"></canvas>
+  <canvas id="canvas48" width="48" height="48"></canvas>
+  <canvas id="canvas128" width="128" height="128"></canvas>
+  
+  <script>
+    function drawIcon(canvas) {
+      const ctx = canvas.getContext('2d');
+      const size = canvas.width;
+      
+      // Background gradient
+      const gradient = ctx.createLinearGradient(0, 0, size, size);
+      gradient.addColorStop(0, '#667eea');
+      gradient.addColorStop(1, '#764ba2');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, size, size);
+      
+      // Draw clock icon
+      ctx.strokeStyle = 'white';
+      ctx.fillStyle = 'white';
+      ctx.lineWidth = size / 16;
+      
+      // Circle
+      ctx.beginPath();
+      ctx.arc(size/2, size/2, size/3, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      // Clock hands
+      ctx.beginPath();
+      ctx.moveTo(size/2, size/2);
+      ctx.lineTo(size/2, size/4);
+      ctx.stroke();
+      
+      ctx.beginPath();
+      ctx.moveTo(size/2, size/2);
+      ctx.lineTo(size*0.7, size/2);
+      ctx.stroke();
+    }
+    
+    ['16', '48', '128'].forEach(size => {
+      const canvas = document.getElementById('canvas' + size);
+      drawIcon(canvas);
+    });
+    
+    console.log('Icons generated. Right-click each canvas and save as PNG.');
+  </script>
+</body>
+</html>
