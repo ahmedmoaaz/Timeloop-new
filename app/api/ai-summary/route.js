@@ -87,6 +87,21 @@ export async function GET(request) {
       .slice(0, 5)
       .map(([site, hours]) => `${site}: ${hours.toFixed(1)}h`);
 
+    // Check if OpenAI API key is configured
+    if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'your-openai-api-key') {
+      return NextResponse.json({
+        error: 'OpenAI API key not configured',
+        details: 'Please add a valid OPENAI_API_KEY to your .env file',
+        period,
+        periodLabel,
+        stats: {
+          eventCount: events.length,
+          topTags: topTags.slice(0, 3),
+          topWebsites: topWebsites.slice(0, 3),
+        },
+      }, { status: 503 });
+    }
+
     // Create prompt for OpenAI
     const prompt = `You are a productivity coach analyzing someone's ${period} activity.
 
@@ -107,34 +122,55 @@ Provide a concise, encouraging summary (3-4 sentences) that:
 3. Offers one actionable suggestion for improvement
 4. Keeps a positive, motivating tone`;
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an encouraging productivity coach who provides brief, actionable insights.',
-        },
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-      temperature: 0.7,
-      max_tokens: 300,
-    });
+    try {
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an encouraging productivity coach who provides brief, actionable insights.',
+          },
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+        temperature: 0.7,
+        max_tokens: 300,
+      });
 
-    const summary = completion.choices[0].message.content;
+      const summary = completion.choices[0].message.content;
 
-    return NextResponse.json({
-      period,
-      periodLabel,
-      summary,
-      stats: {
-        eventCount: events.length,
-        topTags: topTags.slice(0, 3),
-        topWebsites: topWebsites.slice(0, 3),
-      },
-    });
+      return NextResponse.json({
+        period,
+        periodLabel,
+        summary,
+        stats: {
+          eventCount: events.length,
+          topTags: topTags.slice(0, 3),
+          topWebsites: topWebsites.slice(0, 3),
+        },
+      });
+    } catch (openaiError) {
+      console.error('OpenAI API Error:', openaiError);
+      
+      // Handle quota exceeded or other OpenAI errors
+      if (openaiError.status === 429) {
+        return NextResponse.json({
+          error: 'OpenAI API quota exceeded',
+          details: 'Your OpenAI API key has exceeded its quota. Please check your billing at https://platform.openai.com/account/billing',
+          period,
+          periodLabel,
+          stats: {
+            eventCount: events.length,
+            topTags: topTags.slice(0, 3),
+            topWebsites: topWebsites.slice(0, 3),
+          },
+        }, { status: 503 });
+      }
+      
+      throw openaiError;
+    }
   } catch (error) {
     console.error('GET /api/ai-summary error:', error);
     return NextResponse.json(

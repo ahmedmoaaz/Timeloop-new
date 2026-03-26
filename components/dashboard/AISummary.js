@@ -16,15 +16,22 @@ export default function AISummary() {
     setError(null);
     try {
       const res = await fetch(`/api/ai-summary?period=${period}`);
+      const data = await res.json();
+      
       if (res.ok) {
-        const data = await res.json();
         setSummary(data);
       } else {
-        const error = await res.json();
-        setError(error.error || 'Failed to generate summary');
+        // Handle specific error cases
+        if (res.status === 503 && data.error?.includes('quota')) {
+          setError('⚠️ OpenAI API quota exceeded. Please check your billing at platform.openai.com or provide a valid API key.');
+        } else if (res.status === 503 && data.error?.includes('not configured')) {
+          setError('⚠️ OpenAI API key not configured. Please add OPENAI_API_KEY to your .env file.');
+        } else {
+          setError(data.details || data.error || 'Failed to generate summary');
+        }
       }
     } catch (err) {
-      setError('Failed to generate summary');
+      setError('Network error: Unable to connect to the server');
       console.error(err);
     }
     setLoading(false);
