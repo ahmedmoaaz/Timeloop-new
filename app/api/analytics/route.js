@@ -47,8 +47,12 @@ export async function GET(request) {
 
     // Calculate time by tags from events
     const tagTimeMap = {};
+    let totalEventHours = 0;
+    
     events.forEach((event) => {
       const hours = event.duration || 1; // Default 1 hour if no duration
+      totalEventHours += hours;
+      
       event.tags?.forEach((tag) => {
         tagTimeMap[tag] = (tagTimeMap[tag] || 0) + hours;
       });
@@ -76,14 +80,13 @@ export async function GET(request) {
       .sort((a, b) => b.hours - a.hours)
       .slice(0, 10); // Top 10 websites
 
-    const totalHours = tagStats.reduce((sum, item) => sum + item.hours, 0);
     const totalWebsiteHours = websiteStats.reduce((sum, item) => sum + item.hours, 0);
 
     return NextResponse.json({
       period,
       tagStats,
       websiteStats,
-      totalHours: parseFloat(totalHours.toFixed(2)),
+      totalHours: parseFloat(totalEventHours.toFixed(2)), // Total from ALL events, not just tags
       totalWebsiteHours: parseFloat(totalWebsiteHours.toFixed(2)),
       eventCount: events.length,
     });
