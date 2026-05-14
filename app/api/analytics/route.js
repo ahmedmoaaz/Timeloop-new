@@ -55,9 +55,15 @@ export async function GET(request) {
       totalEventHours += hours;
       console.log('Event:', event.title, 'Duration:', hours, 'Tags:', event.tags);
       
-      event.tags?.forEach((tag) => {
-        tagTimeMap[tag] = (tagTimeMap[tag] || 0) + hours;
-      });
+      // Handle events with tags
+      if (event.tags && event.tags.length > 0) {
+        event.tags.forEach((tag) => {
+          tagTimeMap[tag] = (tagTimeMap[tag] || 0) + hours;
+        });
+      } else {
+        // Handle events without tags - put them in "Uncategorized"
+        tagTimeMap['Uncategorized'] = (tagTimeMap['Uncategorized'] || 0) + hours;
+      }
     });
     
     console.log('Tag time map:', tagTimeMap);
