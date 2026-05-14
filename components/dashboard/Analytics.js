@@ -11,25 +11,36 @@ const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'
 export default function Analytics() {
   const [period, setPeriod] = useState('daily');
   const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
+    console.log('Analytics component mounted');
     fetchAnalytics();
   }, [period]);
 
   const fetchAnalytics = async () => {
+    console.log('Fetching analytics for period:', period);
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch(`/api/analytics?period=${period}`);
+      console.log('Analytics response status:', res.status);
       if (res.ok) {
         const json = await res.json();
+        console.log('Analytics data:', json);
         setData(json);
+      } else {
+        setError('Failed to load analytics');
       }
     } catch (error) {
       console.error('Failed to fetch analytics:', error);
+      setError('Error loading analytics');
     }
     setLoading(false);
   };
+
+  console.log('Analytics render - loading:', loading, 'data:', data, 'error:', error);
 
   if (loading) {
     return (
@@ -41,7 +52,25 @@ export default function Analytics() {
     );
   }
 
-  if (!data) return null;
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="py-12">
+          <div className="text-center text-red-500">{error}</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!data) {
+    return (
+      <Card>
+        <CardContent className="py-12">
+          <div className="text-center text-gray-500">No data available</div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
