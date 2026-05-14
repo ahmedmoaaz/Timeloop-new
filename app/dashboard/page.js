@@ -16,6 +16,7 @@ import EventList from '@/components/dashboard/EventList';
 import Analytics from '@/components/dashboard/Analytics';
 import AISummary from '@/components/dashboard/AISummary';
 import BrowserActivity from '@/components/dashboard/BrowserActivity';
+import ExtensionSetup from '@/components/dashboard/ExtensionSetup';
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
@@ -152,6 +153,17 @@ export default function Dashboard() {
             <span className="font-medium">Events</span>
           </button>
           <button
+            onClick={() => setActiveTab('extension')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+              activeTab === 'extension'
+                ? 'bg-indigo-50 text-indigo-600'
+                : 'text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <LayoutDashboard className="w-5 h-5" />
+            <span className="font-medium">Extension Setup</span>
+          </button>
+          <button
             onClick={() => setActiveTab('browser')}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
               activeTab === 'browser'
@@ -280,6 +292,7 @@ export default function Dashboard() {
             </div>
           )}
 
+          {activeTab === 'extension' && <ExtensionSetup />}
           {activeTab === 'browser' && <BrowserActivity />}
           {activeTab === 'analytics' && <Analytics />}
           {activeTab === 'ai' && <AISummary />}
