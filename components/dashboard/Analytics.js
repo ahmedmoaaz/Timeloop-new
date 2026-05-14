@@ -104,7 +104,7 @@ export default function Analytics() {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Events Logged</p>
-                <p className="text-2xl font-bold">{data.eventCount}</p>
+                <p className="text-2xl font-bold">{data.eventCount || 0}</p>
               </div>
             </div>
           </CardContent>
@@ -118,7 +118,7 @@ export default function Analytics() {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Total Hours (Events)</p>
-                <p className="text-2xl font-bold">{data.totalHours}h</p>
+                <p className="text-2xl font-bold">{data.totalHours || 0}h</p>
               </div>
             </div>
           </CardContent>
@@ -132,7 +132,7 @@ export default function Analytics() {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Browser Time</p>
-                <p className="text-2xl font-bold">{data.totalWebsiteHours.toFixed(1)}h</p>
+                <p className="text-2xl font-bold">{(data.totalWebsiteHours || 0).toFixed(1)}h</p>
               </div>
             </div>
           </CardContent>
@@ -142,7 +142,7 @@ export default function Analytics() {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Tag Time Distribution */}
-        {data.tagStats && data.tagStats.length > 0 && (
+        {data.tagStats && data.tagStats.length > 0 ? (
           <Card>
             <CardHeader>
               <CardTitle>Time by Activity</CardTitle>
@@ -159,10 +159,23 @@ export default function Analytics() {
               </ResponsiveContainer>
             </CardContent>
           </Card>
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle>Time by Activity</CardTitle>
+            </CardHeader>
+            <CardContent className="py-12">
+              <div className="text-center text-gray-500">
+                <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <p className="mb-2">No event data yet</p>
+                <p className="text-sm">Create events with tags to see activity breakdown</p>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* Website Time Distribution */}
-        {data.websiteStats && data.websiteStats.length > 0 && (
+        {data.websiteStats && data.websiteStats.length > 0 ? (
           <Card>
             <CardHeader>
               <CardTitle>Top Websites</CardTitle>
@@ -189,15 +202,58 @@ export default function Analytics() {
               </ResponsiveContainer>
             </CardContent>
           </Card>
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle>Top Websites</CardTitle>
+            </CardHeader>
+            <CardContent className="py-12">
+              <div className="text-center text-gray-500">
+                <TrendingUp className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <p className="mb-2">No browser tracking data</p>
+                <p className="text-sm">Install Chrome extension to track websites</p>
+                <Button 
+                  onClick={() => window.location.href = '/download-extension'}
+                  variant="outline"
+                  size="sm"
+                  className="mt-3"
+                >
+                  Download Extension
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         )}
       </div>
 
-      {data.tagStats.length === 0 && data.websiteStats.length === 0 && (
-        <Card>
-          <CardContent className="py-12">
-            <div className="text-center text-gray-500">
-              <p className="text-lg mb-2">No data to display</p>
-              <p className="text-sm">Start logging events and using the Chrome extension to see insights!</p>
+      {/* Help Section */}
+      {(!data.tagStats || data.tagStats.length === 0) && (!data.websiteStats || data.websiteStats.length === 0) && (
+        <Card className="bg-blue-50 border-blue-200">
+          <CardContent className="py-6">
+            <div className="flex items-start gap-4">
+              <div className="bg-blue-100 p-3 rounded-lg">
+                <TrendingUp className="w-6 h-6 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-blue-900 mb-2">How to Get Data Here</h3>
+                <div className="space-y-2 text-sm text-blue-800">
+                  <p><strong>For Activity Charts:</strong></p>
+                  <ol className="list-decimal ml-5 space-y-1">
+                    <li>Go to <strong>Events</strong> tab</li>
+                    <li>Click <strong>Add Event</strong></li>
+                    <li>Add title, duration (in hours), and tags</li>
+                    <li>Save event</li>
+                    <li>Come back here to see charts!</li>
+                  </ol>
+                  <p className="mt-3"><strong>For Website Tracking:</strong></p>
+                  <ol className="list-decimal ml-5 space-y-1">
+                    <li>Download and install Chrome extension</li>
+                    <li>Configure your User ID</li>
+                    <li>Browse websites</li>
+                    <li>Data syncs automatically!</li>
+                  </ol>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
