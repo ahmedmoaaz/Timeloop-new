@@ -6,11 +6,12 @@ const SYNC_INTERVAL = 5; // minutes
 let currentTab = null;
 let startTime = null;
 let timeTracking = {};
+let visitHistory = []; // Queue to track visit history
 
 // Initialize extension
 chrome.runtime.onInstalled.addListener(() => {
   console.log('TimeLoop Tracker installed');
-  chrome.storage.local.set({ timeTracking: {} });
+  chrome.storage.local.set({ timeTracking: {}, visitHistory: [] });
   
   // Create alarm for periodic sync
   chrome.alarms.create('syncData', { periodInMinutes: SYNC_INTERVAL });
@@ -73,11 +74,14 @@ async function saveCurrentTabTime() {
   if (!currentTab || !startTime) return;
   
   const timeSpent = Math.floor((Date.now() - startTime) / 1000); // seconds
-  if (timeSpent < 5) return; // Ignore very short visits
+  if (timeSpent < 3) return; // Ignore very short visits
   
-  const { timeTracking: tracking } = await chrome.storage.local.get('timeTracking');
+  const storage = await chrome.storage.local.get(['timeTracking', 'visitHistory']);
+  const tracking = storage.timeTracking || {};
+  const history = storage.visitHistory || [];
   const domain = currentTab.domain;
   
+  // Update aggregate tracking
   if (!tracking[domain]) {
     tracking[domain] = {
       domain,
@@ -93,7 +97,28 @@ async function saveCurrentTabTime() {
   tracking[domain].lastUrl = currentTab.url;
   tracking[domain].lastTitle = currentTab.title;
   
-  await chrome.storage.local.set({ timeTracking: tracking });
+  // Add to visit history queue
+  const visit = {
+    id: Date.now(),
+    domain,
+    title: currentTab.title || domain,
+    url: currentTab.url,
+    duration: timeSpent,
+    timestamp: new Date().toISOString(),
+    startTime: new Date(startTime).toISOString()
+  };
+  
+  history.unshift(visit); // Add to beginning of queue
+  
+  // Keep only last 100 visits
+  if (history.length > 100) {
+    history.splice(100);
+  }
+  
+  await chrome.storage.local.set({ 
+    timeTracking: tracking,
+    visitHistory: history
+  });
   
   currentTab = null;
   startTime = null;
@@ -161,12 +186,20 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'getStats') {
-    chrome.storage.local.get('timeTracking', (result) => {
-      sendResponse({ stats: result.timeTracking || {} });
+    chrome.storage.local.get(['timeTracking', 'visitHistory'], (result) => {
+      sendResponse({ 
+        stats: result.timeTracking || {},
+        history: result.visitHistory || []
+      });
     });
     return true;
   } else if (request.action === 'syncNow') {
     syncDataToBackend().then(() => {
+      sendResponse({ success: true });
+    });
+    return true;
+  } else if (request.action === 'clearHistory') {
+    chrome.storage.local.set({ visitHistory: [] }, () => {
       sendResponse({ success: true });
     });
     return true;

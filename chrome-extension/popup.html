@@ -12,7 +12,7 @@
     }
     
     body {
-      width: 350px;
+      width: 400px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: #333;
@@ -34,7 +34,7 @@
       border-radius: 8px;
       display: flex;
       align-items: center;
-      justify-center;
+      justify-content: center;
       color: white;
       font-size: 20px;
     }
@@ -50,6 +50,8 @@
     .container {
       background: white;
       padding: 16px;
+      max-height: 600px;
+      overflow-y: auto;
     }
     
     .config-section {
@@ -105,14 +107,52 @@
       margin-top: 8px;
     }
     
-    .stats {
+    .button-danger {
+      background: #ef4444;
+      color: white;
+      margin-top: 8px;
+    }
+    
+    .tabs {
+      display: flex;
+      gap: 8px;
       margin-top: 20px;
+      margin-bottom: 16px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+    
+    .tab {
+      padding: 10px 16px;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      color: #666;
+      transition: all 0.2s;
+    }
+    
+    .tab.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
     }
     
     .stats h3 {
       font-size: 14px;
       color: #666;
       margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     
     .stat-item {
@@ -140,6 +180,42 @@
       font-weight: 700;
       color: #667eea;
       margin-left: 12px;
+    }
+    
+    .history-item {
+      padding: 12px;
+      background: #f9f9f9;
+      border-left: 3px solid #667eea;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    
+    .history-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .history-domain {
+      font-size: 11px;
+      color: #667eea;
+      margin-bottom: 6px;
+    }
+    
+    .history-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #999;
+    }
+    
+    .history-duration {
+      font-weight: 700;
+      color: #667eea;
     }
     
     .empty-state {
@@ -175,6 +251,12 @@
       background: #d1ecf1;
       color: #0c5460;
     }
+    
+    .btn-small {
+      width: auto;
+      padding: 6px 12px;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
@@ -198,9 +280,26 @@
     
     <div id="status"></div>
     
-    <div class="stats">
-      <h3>📊 Today's Activity</h3>
-      <div id="statsList"></div>
+    <div class="tabs">
+      <button class="tab active" data-tab="history">📜 History</button>
+      <button class="tab" data-tab="summary">📊 Summary</button>
+    </div>
+    
+    <div class="tab-content active" id="historyTab">
+      <div class="stats">
+        <h3>
+          <span>Recent Activity Queue</span>
+          <button class="button button-danger btn-small" id="clearHistoryBtn">Clear</button>
+        </h3>
+        <div id="historyList"></div>
+      </div>
+    </div>
+    
+    <div class="tab-content" id="summaryTab">
+      <div class="stats">
+        <h3><span>Today's Summary</span></h3>
+        <div id="statsList"></div>
+      </div>
     </div>
   </div>
   
