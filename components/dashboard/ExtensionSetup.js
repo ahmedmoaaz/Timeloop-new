@@ -139,8 +139,8 @@ export default function ExtensionSetup() {
             <div className="flex gap-3">
               <div className="text-purple-600 font-bold">b.</div>
               <div>
-                <p className="font-medium">Click the ⏰ TimeLoop icon in Chrome toolbar</p>
-                <p className="text-gray-600">Look for the clock icon next to your profile picture</p>
+                <p className="font-medium">Click the TimeLoop icon in Chrome toolbar</p>
+                <p className="text-gray-600">Look for the TimeLoop icon next to your profile picture</p>
               </div>
             </div>
             <div className="flex gap-3">

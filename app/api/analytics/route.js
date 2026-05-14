@@ -49,14 +49,19 @@ export async function GET(request) {
     const tagTimeMap = {};
     let totalEventHours = 0;
     
+    console.log('Analytics - Processing events:', events.length);
     events.forEach((event) => {
       const hours = event.duration || 1; // Default 1 hour if no duration
       totalEventHours += hours;
+      console.log('Event:', event.title, 'Duration:', hours, 'Tags:', event.tags);
       
       event.tags?.forEach((tag) => {
         tagTimeMap[tag] = (tagTimeMap[tag] || 0) + hours;
       });
     });
+    
+    console.log('Tag time map:', tagTimeMap);
+    console.log('Total event hours:', totalEventHours);
 
     // Calculate time by website from activity logs
     const websiteTimeMap = {};
