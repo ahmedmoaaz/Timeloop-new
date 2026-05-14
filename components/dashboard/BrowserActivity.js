@@ -24,20 +24,62 @@ export default function BrowserActivity() {
   }, [session]);
 
   const fetchActivityLogs = async () => {
-    if (!session?.user?.id) return;
+    if (!session?.user?.id) {
+      console.log('No session user ID');
+      return;
+    }
     
+    console.log('Fetching activity logs for user:', session.user.id);
     setLoading(true);
     try {
       const res = await fetch(`/api/activity-log?userId=${session.user.id}`);
+      console.log('Activity log response status:', res.status);
       if (res.ok) {
         const data = await res.json();
+        console.log('Activity logs received:', data.logs);
+        console.log('Total logs count:', data.logs?.length || 0);
         setActivityLogs(data.logs || []);
         calculateStats(data.logs || []);
+      } else {
+        console.error('Failed to fetch activity logs:', res.status);
       }
     } catch (error) {
       console.error('Failed to fetch activity logs:', error);
     }
     setLoading(false);
+  };
+
+  const addTestData = async () => {
+    if (!session?.user?.id) return;
+    
+    try {
+      // Add test activity log
+      const testData = {
+        userId: session.user.id,
+        website: 'youtube.com',
+        url: 'https://youtube.com',
+        timeSpent: 45, // 45 minutes
+        timestamp: new Date().toISOString()
+      };
+      
+      const res = await fetch('/api/activity-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(testData)
+      });
+      
+      if (res.ok) {
+        console.log('Test data added successfully');
+        alert('Test data added! Refreshing...');
+        fetchActivityLogs();
+      } else {
+        console.error('Failed to add test data');
+        alert('Failed to add test data');
+      }
+    } catch (error) {
+      console.error('Error adding test data:', error);
+      alert('Error adding test data');
+    }
   };
 
   const calculateStats = (logs) => {
@@ -112,9 +154,14 @@ export default function BrowserActivity() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Browser Activity</h2>
-        <Button onClick={fetchActivityLogs} variant="outline" size="sm">
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={addTestData} variant="outline" size="sm">
+            Add Test Data
+          </Button>
+          <Button onClick={fetchActivityLogs} variant="outline" size="sm">
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
