@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { TrendingUp, Calendar, Clock } from 'lucide-react';
+import { TrendingUp, Calendar, Clock, ArrowRight } from 'lucide-react';
+import { format } from 'date-fns';
 
 const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#ef4444'];
 
@@ -95,7 +96,7 @@ export default function Analytics() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
@@ -103,8 +104,11 @@ export default function Analytics() {
                 <Calendar className="w-6 h-6 text-indigo-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Events Logged</p>
+                <p className="text-sm text-gray-600">Total Events</p>
                 <p className="text-2xl font-bold">{data.eventCount || 0}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {data.currentEventCount || 0} current, {data.upcomingEventCount || 0} upcoming
+                </p>
               </div>
             </div>
           </CardContent>
@@ -133,6 +137,20 @@ export default function Analytics() {
               <div>
                 <p className="text-sm text-gray-600">Browser Time</p>
                 <p className="text-2xl font-bold">{(data.totalWebsiteHours || 0).toFixed(1)}h</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="bg-green-100 p-3 rounded-lg">
+                <Calendar className="w-6 h-6 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Upcoming Events</p>
+                <p className="text-2xl font-bold">{data.upcomingEventCount || 0}</p>
               </div>
             </div>
           </CardContent>
@@ -225,6 +243,64 @@ export default function Analytics() {
           </Card>
         )}
       </div>
+
+      {/* Upcoming Events Section */}
+      {data.upcomingEvents && data.upcomingEvents.length > 0 && (
+        <Card className="border-2 border-green-200">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="bg-green-100 p-2 rounded-lg">
+                  <ArrowRight className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <CardTitle>Upcoming Events</CardTitle>
+                  <p className="text-sm text-gray-600">Future scheduled events</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-bold text-green-600">{data.upcomingEventCount}</p>
+                <p className="text-xs text-gray-500">events</p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {data.upcomingEvents.slice(0, 5).map((event) => (
+                <div key={event.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-900">{event.title}</h4>
+                    <div className="flex items-center gap-4 mt-1">
+                      <div className="flex items-center gap-1 text-sm text-gray-600">
+                        <Calendar className="w-3 h-3" />
+                        <span>{format(new Date(event.date), 'MMM dd, yyyy')}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-sm text-gray-600">
+                        <Clock className="w-3 h-3" />
+                        <span>{event.duration}h</span>
+                      </div>
+                    </div>
+                    {event.tags && event.tags.length > 0 && (
+                      <div className="flex gap-1 mt-2">
+                        {event.tags.map((tag, idx) => (
+                          <span key={idx} className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs rounded-full">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {data.upcomingEvents.length > 5 && (
+                <p className="text-center text-sm text-gray-500 pt-2">
+                  +{data.upcomingEvents.length - 5} more upcoming events
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Help Section */}
       {(!data.tagStats || data.tagStats.length === 0) && (!data.websiteStats || data.websiteStats.length === 0) && (

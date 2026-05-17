@@ -31,7 +31,7 @@ export async function GET(request) {
 
     console.log('Analytics date range:', { period, startDate, endDate });
 
-    // Get events in date range
+    // Get current period events
     const events = await eventsCollection
       .find({
         userId: session.user.id,
@@ -39,9 +39,22 @@ export async function GET(request) {
       })
       .toArray();
     
-    console.log('Found events:', events.length);
+    // Get upcoming (future) events
+    const upcomingEvents = await eventsCollection
+      .find({
+        userId: session.user.id,
+        date: { $gt: endDate },
+      })
+      .sort({ date: 1 })
+      .toArray();
+    
+    console.log('Found current events:', events.length);
+    console.log('Found upcoming events:', upcomingEvents.length);
     if (events.length > 0) {
-      console.log('Event dates:', events.map(e => ({ title: e.title, date: e.date })));
+      console.log('Current event dates:', events.map(e => ({ title: e.title, date: e.date })));
+    }
+    if (upcomingEvents.length > 0) {
+      console.log('Upcoming event dates:', upcomingEvents.map(e => ({ title: e.title, date: e.date })));
     }
 
     // Get activity logs from Chrome extension
@@ -52,12 +65,13 @@ export async function GET(request) {
       })
       .toArray();
 
-    // Calculate time by tags from events
+    // Calculate time by tags from ALL events (current + upcoming)
+    const allEvents = [...events, ...upcomingEvents];
     const tagTimeMap = {};
     let totalEventHours = 0;
     
-    console.log('Analytics - Processing events:', events.length);
-    events.forEach((event) => {
+    console.log('Analytics - Processing events:', events.length, 'upcoming:', upcomingEvents.length);
+    allEvents.forEach((event) => {
       const hours = event.duration || 1; // Default 1 hour if no duration
       totalEventHours += hours;
       console.log('Event:', event.title, 'Duration:', hours, 'Tags:', event.tags);
@@ -74,7 +88,7 @@ export async function GET(request) {
     });
     
     console.log('Tag time map:', tagTimeMap);
-    console.log('Total event hours:', totalEventHours);
+    console.log('Total event hours (current + upcoming):', totalEventHours);
 
     // Calculate time by website from activity logs
     const websiteTimeMap = {};
@@ -100,13 +114,25 @@ export async function GET(request) {
 
     const totalWebsiteHours = websiteStats.reduce((sum, item) => sum + item.hours, 0);
 
+    // Calculate upcoming events stats
+    const upcomingEventsFormatted = upcomingEvents.map(event => ({
+      id: event.id,
+      title: event.title,
+      date: event.date,
+      duration: event.duration || 1,
+      tags: event.tags || [],
+    }));
+
     return NextResponse.json({
       period,
       tagStats,
       websiteStats,
-      totalHours: parseFloat(totalEventHours.toFixed(2)), // Total from ALL events, not just tags
+      totalHours: parseFloat(totalEventHours.toFixed(2)), // Total from ALL events (current + upcoming)
       totalWebsiteHours: parseFloat(totalWebsiteHours.toFixed(2)),
-      eventCount: events.length,
+      eventCount: allEvents.length, // Total count including upcoming
+      currentEventCount: events.length,
+      upcomingEventCount: upcomingEvents.length,
+      upcomingEvents: upcomingEventsFormatted,
     });
   } catch (error) {
     console.error('GET /api/analytics error:', error);
