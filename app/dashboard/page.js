@@ -292,10 +292,10 @@ export default function Dashboard() {
             </div>
           )}
 
-          {activeTab === 'extension' && <ExtensionSetup />}
-          {activeTab === 'browser' && <BrowserActivity />}
-          {activeTab === 'analytics' && <Analytics />}
-          {activeTab === 'ai' && <AISummary />}
+          {activeTab === 'extension' && <ExtensionSetup key="extension" />}
+          {activeTab === 'browser' && <BrowserActivity key="browser" />}
+          {activeTab === 'analytics' && <Analytics key="analytics" />}
+          {activeTab === 'ai' && <AISummary key="ai" />}
         </div>
       </div>
     </div>

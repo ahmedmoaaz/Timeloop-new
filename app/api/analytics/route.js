@@ -29,6 +29,8 @@ export async function GET(request) {
       endDate = endOfWeek(now);
     }
 
+    console.log('Analytics date range:', { period, startDate, endDate });
+
     // Get events in date range
     const events = await eventsCollection
       .find({
@@ -36,6 +38,11 @@ export async function GET(request) {
         date: { $gte: startDate, $lte: endDate },
       })
       .toArray();
+    
+    console.log('Found events:', events.length);
+    if (events.length > 0) {
+      console.log('Event dates:', events.map(e => ({ title: e.title, date: e.date })));
+    }
 
     // Get activity logs from Chrome extension
     const activityLogs = await activityLogsCollection
